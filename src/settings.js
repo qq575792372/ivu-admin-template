@@ -30,7 +30,7 @@ module.exports = {
     menuCollapseParentTitle: false,
 
     // 是否开启 tabsView
-    tabsView: true,
+    tabsView: false,
     // tabsView标签显示图标
     tabsViewIcon: true,
     // tabsView标签是否支持拖拽排序

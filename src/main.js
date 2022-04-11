@@ -29,23 +29,9 @@ Vue.use(MetaInfo);
 import VueClipboard2 from "vue-clipboard2";
 Vue.use(VueClipboard2);
 
-// 如果线上需要使用Mock，则需要用到以下代码
-/* if (process.env.NODE_ENV === "production") {
-  const { mockXHR } = require("../mock");
-  mockXHR();
-} */
-
 // 全局组件
 Vue.component("PageHeader", () => import("@/components/PageHeader"));
 Vue.component("ILink", () => import("@/components/ILink"));
-Vue.component("Result", () => import("@/components/Result"));
-Vue.component("Description", () => import("@/components/Description"));
-Vue.component("DescriptionItem", () =>
-  import("@/components/Description/DescriptionItem")
-);
-Vue.component("VueScrollbar", () => import("@/components/VueScrollbar"));
-Vue.component("AvatarList", () => import("@/components/AvatarList"));
-Vue.component("ValidSlider", () => import("@/components/ValidSlider"));
 
 // 组织vue在启动时生成生产提示
 Vue.config.productionTip = false;
