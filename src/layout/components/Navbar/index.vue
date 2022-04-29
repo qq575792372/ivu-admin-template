@@ -9,6 +9,10 @@
 
     <!-- 右侧菜单 -->
     <div class="i-layout-navbar-right-menu">
+      <!-- 页面全屏 -->
+      <Fullscreen v-if="!isMobile" class="i-layout-navbar-trigger" />
+      <!-- 系统通知 -->
+      <Notify class="i-layout-navbar-trigger" />
       <!-- 用户登录信息 -->
       <UserInfo class="i-layout-navbar-trigger" />
       <!-- 系统设置 -->
@@ -22,8 +26,10 @@ import { mapGetters } from "vuex";
 import Hamburger from "@/layout/components/Hamburger";
 import Breadcrumb from "@/layout/components/Breadcrumb";
 import RefreshPage from "@/layout/components/RefreshPage";
+import Fullscreen from "@/layout/components/Fullscreen";
 import UserInfo from "@/layout/components/UserInfo";
 import Settings from "@/layout/components/Settings";
+import Notify from "@/layout/components/Notify";
 
 export default {
   name: "Navbar",
@@ -31,8 +37,10 @@ export default {
     Hamburger,
     Breadcrumb,
     RefreshPage,
+    Fullscreen,
     UserInfo,
     Settings,
+    Notify,
   },
   computed: {
     ...mapGetters(["sidebar", "device"]),

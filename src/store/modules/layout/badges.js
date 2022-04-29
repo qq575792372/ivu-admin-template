@@ -1,7 +1,28 @@
 // state
 const state = {
   // 左侧菜单显示的徽标，通过vuex来动态更改
-  sidebarBadges: [],
+  sidebarBadges: [
+    {
+      path: "/dashboard/index",
+      count: 8,
+    },
+    {
+      path: "/components-demo",
+      text: "新特性",
+      type: "warning",
+    },
+    // 子菜单显示徽标
+    {
+      path: "/table/basic-table",
+      count: 10,
+      type: "success",
+    },
+    // 一级菜单显示徽标
+    {
+      path: "/form",
+      color: "#2db7f5",
+    },
+  ],
 };
 
 // mutations

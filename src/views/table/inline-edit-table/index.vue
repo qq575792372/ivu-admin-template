@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <!-- 页面标题 -->
-    <PageHeader title="基础列表" content="标准的列表增删改查操作" />
+    <PageHeader title="行内编辑" content="点击列表编辑按钮可以开启行内编辑" />
 
     <!-- main -->
     <div class="main-container">
@@ -21,8 +21,8 @@
             <Col>
               <Select
                 v-model="listQuery.productType"
-                clearable
                 placeholder="商品类型"
+                clearable
                 style="width: 120px"
               >
                 <Option value="0">新鲜果蔬</Option>
@@ -54,23 +54,14 @@
             <!-- eslint-disable -->
             <template v-if="!searchCollapse">
               <Col v-for="(item, index) in 14" :key="index">
-                <Input
-                  v-model="listQuery.name"
-                  placeholder="输入内容"
-                  clearable
-                  style="width: 180px"
-                />
+                <Input v-model="listQuery.name" placeholder="输入内容" clearable style="width: 180px" />
               </Col>
             </template>
             <Col>
               <Button type="primary" @click="queryData">查询</Button>
               <Button type="default" @click="handleReset">重置</Button>
               <!-- 查询条件展开和收起 -->
-              <i-link
-                type="primary"
-                :underline="false"
-                @click="searchCollapse = !searchCollapse"
-              >
+              <i-link type="primary" :underline="false" @click="searchCollapse = !searchCollapse">
                 <template v-if="searchCollapse">
                   <Icon type="ios-arrow-down" />
                   展开
@@ -85,9 +76,7 @@
         </div>
         <!-- 操作按钮 -->
         <div class="operate-box">
-          <Button icon="md-add" type="primary" @click="showAddModal">
-            新增
-          </Button>
+          <Button icon="md-add" type="primary" @click="showAddModal">新增</Button>
           <Button icon="md-done-all" type="primary">批量操作</Button>
         </div>
       </div>
@@ -98,14 +87,7 @@
             已选择
             <span class="text-bold text-primary">{{ selectRows.length }}</span>
             条数据
-            <i-link
-              class="margin-left-10"
-              type="danger"
-              :underline="false"
-              @click="handleClearRows"
-            >
-              清空
-            </i-link>
+            <i-link class="margin-left-10" type="danger" :underline="false" @click="handleClearRows">清空</i-link>
           </div>
         </Alert>
         <Table
@@ -117,21 +99,29 @@
         >
           <!-- 状态 -->
           <template slot-scope="{ row, index }" slot="status">
-            <span class="text-success" v-if="row.status == 1">已上架</span>
-            <span class="text-danger" v-if="row.status == 0">已下架</span>
+            <template v-if="row.editable">
+              <Select v-model="row.status" placeholder="商品状态">
+                <Option :value="0">已下架</Option>
+                <Option :value="1">已上架</Option>
+              </Select>
+            </template>
+            <template v-else>
+              <span class="text-success" v-if="row.status == 1">已上架</span>
+              <span class="text-danger" v-if="row.status == 0">已下架</span>
+            </template>
           </template>
           <!-- 操作 -->
-          <template slot-scope="{ row, index }" slot="action" :width="100">
-            <i-link
-              type="primary"
-              :underline="false"
-              @click="showEditModal(row)"
-            >
-              编辑
-            </i-link>
-            <i-link type="danger" :underline="false" @click="handleDelete(row)">
-              删除
-            </i-link>
+          <template slot-scope="{ row, index }" slot="action">
+            <span v-if="row.editable">
+              <Button type="success" @click="handleSubmitEditLine(row, index)" size="small" style="margin-right: 3px">
+                保存
+              </Button>
+              <Button type="error" @click="handleCancelEditLine(row, index)" size="small">取消</Button>
+            </span>
+            <span v-else>
+              <i-link type="primary" :underline="false" @click="handleEditLine(row, index)">编辑</i-link>
+              <i-link type="danger" :underline="false" @click="handleDelete(row)">删除</i-link>
+            </span>
           </template>
         </Table>
       </div>
@@ -153,18 +143,9 @@
 
     <!-- 弹框 -->
     <!-- 编辑和新增 -->
-    <Modal
-      v-model="editModal"
-      :title="editForm.id ? '编辑商品' : '添加商品'"
-      width="640px"
-    >
+    <Modal v-model="editModal" :title="editForm.id ? '编辑商品' : '添加商品'" width="640px">
       <div>
-        <Form
-          ref="editFormRef"
-          :model="editForm"
-          :rules="editFormRules"
-          :label-width="80"
-        >
+        <Form ref="editFormRef" :model="editForm" :rules="editFormRules" :label-width="80">
           <FormItem v-if="editForm.id" label="商品编号">
             {{ editForm.productNo }}
           </FormItem>
@@ -178,12 +159,7 @@
             ></Input>
           </FormItem>
           <FormItem label="商品分类" prop="productType">
-            <Select
-              v-model="editForm.productType"
-              placeholder="选择商品分类"
-              style="width: 360px"
-              clearable
-            >
+            <Select v-model="editForm.productType" placeholder="选择商品分类" style="width: 360px" clearable>
               <Option value="0">新鲜果蔬</Option>
               <Option value="1">饮料乳品</Option>
               <Option value="2">肉禽水产</Option>
@@ -220,20 +196,10 @@
             />
           </FormItem>
           <FormItem label="库存" prop="stock">
-            <InputNumber
-              v-model="editForm.stock"
-              :min="0"
-              placeholder="输入库存"
-              style="width: 360px"
-            />
+            <InputNumber v-model="editForm.stock" :min="0" placeholder="输入库存" style="width: 360px" />
           </FormItem>
           <FormItem v-if="editForm.id" label="状态">
-            <Select
-              v-model="editForm.status"
-              placeholder="商品状态"
-              clearable
-              style="width: 360px"
-            >
+            <Select v-model="editForm.status" placeholder="商品状态" clearable style="width: 360px">
               <Option value="0">已下架</Option>
               <Option value="1">已上架</Option>
             </Select>
@@ -251,7 +217,6 @@
 <script>
 // 引入LimeUtil
 import LimeUtil from "@lime-util/util";
-import axios from "axios";
 // 引入api
 import {
   getList,
@@ -308,28 +273,101 @@ export default {
           title: "商品名称",
           key: "productName",
           width: 120,
+          render: (h, { row, index }) => {
+            if (row.editable) {
+              return h("Input", {
+                props: {
+                  type: "text",
+                  value: row.productName,
+                  placeholder: "输入商品名称",
+                },
+                on: {
+                  "on-blur": (event) => {
+                    row.productName = event.target.value;
+                  },
+                },
+              });
+            } else {
+              return h("span", row.productName);
+            }
+          },
         },
         {
           title: "商品分类",
           key: "productType",
           width: 120,
           render: (h, { row, index }) => {
-            return h(
-              "span",
-              row.productType == 0
-                ? "新鲜果蔬"
-                : row.productType == 1
-                ? "饮料乳品"
-                : row.productType == 2
-                ? "肉禽水产"
-                : row.productType == 3
-                ? "米面粮油"
-                : row.productType == 4
-                ? "日用百货"
-                : row.productType == 5
-                ? "其他"
-                : ""
-            );
+            if (row.editable) {
+              return h(
+                "Select",
+                {
+                  props: {
+                    value: String(row.productType),
+                    placeholder: "选择商品分类",
+                  },
+                  on: {
+                    "on-change": (value) => {
+                      row.productType = value;
+                    },
+                  },
+                },
+                [
+                  h("Option", {
+                    props: {
+                      value: "0",
+                      label: "新鲜果蔬",
+                    },
+                  }),
+                  h("Option", {
+                    props: {
+                      value: "1",
+                      label: "饮料乳品",
+                    },
+                  }),
+                  h("Option", {
+                    props: {
+                      value: "2",
+                      label: "肉禽水产",
+                    },
+                  }),
+                  h("Option", {
+                    props: {
+                      value: "3",
+                      label: "米面粮油",
+                    },
+                  }),
+                  h("Option", {
+                    props: {
+                      value: "4",
+                      label: "日用百货",
+                    },
+                  }),
+                  h("Option", {
+                    props: {
+                      value: "5",
+                      label: "其他",
+                    },
+                  }),
+                ]
+              );
+            } else {
+              return h(
+                "span",
+                row.productType == 0
+                  ? "新鲜果蔬"
+                  : row.productType == 1
+                  ? "饮料乳品"
+                  : row.productType == 2
+                  ? "肉禽水产"
+                  : row.productType == 3
+                  ? "米面粮油"
+                  : row.productType == 4
+                  ? "日用百货"
+                  : row.productType == 5
+                  ? "其他"
+                  : ""
+              );
+            }
           },
         },
         {
@@ -343,7 +381,24 @@ export default {
           width: 120,
           sortable: true,
           render: (h, { row, index }) => {
-            return h("span", "￥" + LimeUtil.toFixed(row.originPrice));
+            if (row.editable) {
+              return h("InputNumber", {
+                props: {
+                  type: "text",
+                  value: row.originPrice,
+                  min: 0,
+                  precision: 2,
+                  placeholder: "输入商品原价",
+                },
+                on: {
+                  "on-change": (value) => {
+                    row.originPrice = value;
+                  },
+                },
+              });
+            } else {
+              return h("span", "￥" + LimeUtil.toFixed(row.originPrice));
+            }
           },
         },
         {
@@ -352,13 +407,49 @@ export default {
           width: 120,
           sortable: true,
           render: (h, { row, index }) => {
-            return h("span", "￥" + LimeUtil.toFixed(row.originPrice));
+            if (row.editable) {
+              return h("InputNumber", {
+                props: {
+                  type: "text",
+                  value: row.sellPrice,
+                  min: 0,
+                  precision: 2,
+                  placeholder: "输入商品售价",
+                },
+                on: {
+                  "on-change": (value) => {
+                    row.sellPrice = value;
+                  },
+                },
+              });
+            } else {
+              return h("span", "￥" + LimeUtil.toFixed(row.sellPrice));
+            }
           },
         },
         {
           title: "单位",
           key: "unit",
           width: 120,
+          render: (h, { row, index }) => {
+            if (row.editable) {
+              return h("Input", {
+                props: {
+                  type: "text",
+                  value: row.unit,
+                  maxlength: 2,
+                  placeholder: "输入单位",
+                },
+                on: {
+                  "on-blur": (event) => {
+                    row.unit = event.target.value;
+                  },
+                },
+              });
+            } else {
+              return h("span", row.unit);
+            }
+          },
         },
         {
           title: "库存",
@@ -366,8 +457,24 @@ export default {
           width: 120,
           sortable: true,
           render: (h, { row, index }) => {
-            let text = row.stock + row.unit;
-            return h("span", text);
+            if (row.editable) {
+              return h("InputNumber", {
+                props: {
+                  type: "text",
+                  value: row.stock,
+                  min: 0,
+                  precision: 2,
+                  placeholder: "输入库存",
+                },
+                on: {
+                  "on-change": (value) => {
+                    row.stock = value;
+                  },
+                },
+              });
+            } else {
+              return h("span", row.stock + row.unit);
+            }
           },
         },
         {
@@ -384,7 +491,8 @@ export default {
           title: "操作",
           slot: "action",
           fixed: "right",
-          width: 120,
+          align: "center",
+          width: 140,
         },
       ],
 
@@ -452,14 +560,14 @@ export default {
       },
     };
   },
-  async created() {
+  created() {
     this.queryData();
   },
   methods: {
     /**
      * 查询列表
      */
-    async queryData() {
+    queryData() {
       this.listLoading = true;
       getList({
         pageNo: this.listQuery.pageNo,
@@ -470,7 +578,7 @@ export default {
             this.listLoading = false;
           }, 300);
           if (res.code === 0) {
-            this.list = res.data?.records;
+            this.list = res.data.records;
             this.listTotal = res.data.total;
           } else {
             this.$Message.error(res.data.message);
@@ -479,6 +587,10 @@ export default {
         .catch((error) => {
           this.listLoading = false;
         });
+      // 关闭loading
+      setTimeout(() => {
+        this.listLoading = false;
+      }, 300);
     },
     // 重置查询列表
     handleReset() {
@@ -532,20 +644,37 @@ export default {
         this.$refs.editFormRef.resetFields();
       }
     },
-    showEditModal(row) {
-      this.editModal = true;
-      this.editForm = {
-        id: row.id,
-        productNo: row.productNo,
-        productName: row.productName,
-        productType: String(row.productType),
-        status: String(row.status),
-        originPrice: row.originPrice,
-        sellPrice: row.sellPrice,
-        unit: row.unit,
-        stock: row.stock,
-      };
+
+    /**
+     * 列表行内编辑操作
+     */
+    // 显示行内编辑
+    handleEditLine(row, index) {
+      this.list[index].editable = true;
+      this.$set(row, "editable", true);
     },
+    // 关闭行内编辑
+    handleCancelEditLine(row, index) {
+      this.list[index].editable = false;
+      this.$set(row, "editable", false);
+    },
+    // 提交行内编辑内容
+    handleSubmitEditLine(row, index) {
+      console.log(111, row);
+      updateProduct(row).then((res) => {
+        if (res.code === 0) {
+          this.$Message.success("修改成功");
+          // 修改成功后关闭当前行内编辑
+          this.handleCancelEditLine(row, index);
+        } else {
+          this.$Message.error(res.message);
+        }
+      });
+    },
+
+    /**
+     * 提交编辑
+     */
     handleSubmit() {
       this.$refs.editFormRef.validate((valid) => {
         if (valid) {

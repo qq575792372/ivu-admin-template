@@ -25,10 +25,6 @@ import "./permission";
 import MetaInfo from "vue-meta-info";
 Vue.use(MetaInfo);
 
-// 引入vue-clipboard2
-import VueClipboard2 from "vue-clipboard2";
-Vue.use(VueClipboard2);
-
 // 全局组件
 Vue.component("PageHeader", () => import("@/components/PageHeader"));
 Vue.component("ILink", () => import("@/components/ILink"));

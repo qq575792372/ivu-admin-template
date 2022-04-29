@@ -21,21 +21,12 @@
       <!-- 菜单已展开 -->
       <!-- eslint-disable -->
       <template v-if="!isCollapsed" v-for="(route, index) in sidebarRoutes">
-        <side-menu-item
-          :key="route.path + index"
-          :item="route"
-          :base-path="route.path"
-        />
+        <side-menu-item :key="route.path + index" :item="route" :base-path="route.path" />
       </template>
 
       <!-- 菜单已折叠 -->
       <template v-else>
-        <side-menu-collapse
-          :key="route.path + index"
-          :item="route"
-          top-level
-          :base-path="route.path"
-        />
+        <side-menu-collapse :key="route.path + index" :item="route" top-level :base-path="route.path" />
       </template>
     </Menu>
   </div>
@@ -43,6 +34,7 @@
 <script>
 import { mapGetters, mapState } from "vuex";
 // 导入组件
+import VueScrollbar from "@/components/VueScrollbar";
 import SideMenuLogo from "./MenuLogo";
 import SideMenuItem from "./MenuItem";
 import SideMenuCollapse from "./MenuCollapse";
@@ -52,6 +44,7 @@ import SideMenu from "@/layout/mixins/SideMenu";
 export default {
   name: "SideMenu",
   components: {
+    VueScrollbar,
     SideMenuLogo,
     SideMenuItem,
     SideMenuCollapse,

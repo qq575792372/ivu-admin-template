@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <!-- 页面标题 -->
-    <PageHeader title="基础列表" content="标准的列表增删改查操作" />
+    <PageHeader title="列表拖拽" content="基础列表基础上增加增加鼠标拖拽效果" />
 
     <!-- main -->
     <div class="main-container">
@@ -21,8 +21,8 @@
             <Col>
               <Select
                 v-model="listQuery.productType"
-                clearable
                 placeholder="商品类型"
+                clearable
                 style="width: 120px"
               >
                 <Option value="0">新鲜果蔬</Option>
@@ -54,23 +54,14 @@
             <!-- eslint-disable -->
             <template v-if="!searchCollapse">
               <Col v-for="(item, index) in 14" :key="index">
-                <Input
-                  v-model="listQuery.name"
-                  placeholder="输入内容"
-                  clearable
-                  style="width: 180px"
-                />
+                <Input v-model="listQuery.name" placeholder="输入内容" clearable style="width: 180px" />
               </Col>
             </template>
             <Col>
               <Button type="primary" @click="queryData">查询</Button>
               <Button type="default" @click="handleReset">重置</Button>
               <!-- 查询条件展开和收起 -->
-              <i-link
-                type="primary"
-                :underline="false"
-                @click="searchCollapse = !searchCollapse"
-              >
+              <i-link type="primary" :underline="false" @click="searchCollapse = !searchCollapse">
                 <template v-if="searchCollapse">
                   <Icon type="ios-arrow-down" />
                   展开
@@ -85,9 +76,7 @@
         </div>
         <!-- 操作按钮 -->
         <div class="operate-box">
-          <Button icon="md-add" type="primary" @click="showAddModal">
-            新增
-          </Button>
+          <Button icon="md-add" type="primary" @click="showAddModal">新增</Button>
           <Button icon="md-done-all" type="primary">批量操作</Button>
         </div>
       </div>
@@ -98,14 +87,7 @@
             已选择
             <span class="text-bold text-primary">{{ selectRows.length }}</span>
             条数据
-            <i-link
-              class="margin-left-10"
-              type="danger"
-              :underline="false"
-              @click="handleClearRows"
-            >
-              清空
-            </i-link>
+            <i-link class="margin-left-10" type="danger" :underline="false" @click="handleClearRows">清空</i-link>
           </div>
         </Alert>
         <Table
@@ -113,6 +95,8 @@
           :loading="listLoading"
           :columns="tableColumns"
           :data="list"
+          :draggable="true"
+          @on-drag-drop="handleDrag"
           @on-selection-change="handleChange"
         >
           <!-- 状态 -->
@@ -122,16 +106,8 @@
           </template>
           <!-- 操作 -->
           <template slot-scope="{ row, index }" slot="action" :width="100">
-            <i-link
-              type="primary"
-              :underline="false"
-              @click="showEditModal(row)"
-            >
-              编辑
-            </i-link>
-            <i-link type="danger" :underline="false" @click="handleDelete(row)">
-              删除
-            </i-link>
+            <i-link type="primary" :underline="false" @click="showEditModal(row)">编辑</i-link>
+            <i-link type="danger" :underline="false" @click="handleDelete(row)">删除</i-link>
           </template>
         </Table>
       </div>
@@ -153,18 +129,9 @@
 
     <!-- 弹框 -->
     <!-- 编辑和新增 -->
-    <Modal
-      v-model="editModal"
-      :title="editForm.id ? '编辑商品' : '添加商品'"
-      width="640px"
-    >
+    <Modal v-model="editModal" :title="editForm.id ? '编辑商品' : '添加商品'" width="640px">
       <div>
-        <Form
-          ref="editFormRef"
-          :model="editForm"
-          :rules="editFormRules"
-          :label-width="80"
-        >
+        <Form ref="editFormRef" :model="editForm" :rules="editFormRules" :label-width="80">
           <FormItem v-if="editForm.id" label="商品编号">
             {{ editForm.productNo }}
           </FormItem>
@@ -178,12 +145,7 @@
             ></Input>
           </FormItem>
           <FormItem label="商品分类" prop="productType">
-            <Select
-              v-model="editForm.productType"
-              placeholder="选择商品分类"
-              style="width: 360px"
-              clearable
-            >
+            <Select v-model="editForm.productType" placeholder="选择商品分类" style="width: 360px" clearable>
               <Option value="0">新鲜果蔬</Option>
               <Option value="1">饮料乳品</Option>
               <Option value="2">肉禽水产</Option>
@@ -220,23 +182,11 @@
             />
           </FormItem>
           <FormItem label="库存" prop="stock">
-            <InputNumber
-              v-model="editForm.stock"
-              :min="0"
-              placeholder="输入库存"
-              style="width: 360px"
-            />
+            <InputNumber v-model="editForm.stock" :min="0" placeholder="输入库存" style="width: 360px" />
           </FormItem>
           <FormItem v-if="editForm.id" label="状态">
-            <Select
-              v-model="editForm.status"
-              placeholder="商品状态"
-              clearable
-              style="width: 360px"
-            >
-              <Option value="0">已下架</Option>
-              <Option value="1">已上架</Option>
-            </Select>
+            <span v-if="editForm.status == 0" class="text-danger">已下架</span>
+            <span v-if="editForm.status == 1" class="text-success">已上架</span>
           </FormItem>
         </Form>
       </div>
@@ -251,7 +201,6 @@
 <script>
 // 引入LimeUtil
 import LimeUtil from "@lime-util/util";
-import axios from "axios";
 // 引入api
 import {
   getList,
@@ -452,14 +401,14 @@ export default {
       },
     };
   },
-  async created() {
+  created() {
     this.queryData();
   },
   methods: {
     /**
      * 查询列表
      */
-    async queryData() {
+    queryData() {
       this.listLoading = true;
       getList({
         pageNo: this.listQuery.pageNo,
@@ -470,7 +419,7 @@ export default {
             this.listLoading = false;
           }, 300);
           if (res.code === 0) {
-            this.list = res.data?.records;
+            this.list = res.data.records;
             this.listTotal = res.data.total;
           } else {
             this.$Message.error(res.data.message);
@@ -479,6 +428,10 @@ export default {
         .catch((error) => {
           this.listLoading = false;
         });
+      // 关闭loading
+      setTimeout(() => {
+        this.listLoading = false;
+      }, 300);
     },
     // 重置查询列表
     handleReset() {
@@ -498,6 +451,18 @@ export default {
       this.queryData();
     },
 
+    /**
+     * 列表拖拽排序
+     * @param {Number} sourceIndex 源位置下标
+     * @param {Number} targetIndex  替换位置后的下标
+     */
+    handleDrag(sourceIndex, targetIndex) {
+      this.list[sourceIndex] = this.list.splice(
+        targetIndex,
+        1,
+        this.list[sourceIndex]
+      )[0];
+    },
     /**
      * 表格多选
      */
